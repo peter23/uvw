@@ -20,11 +20,11 @@ struct send_event {};
 
 /*! @brief UDP data event. */
 struct udp_data_event {
-    explicit udp_data_event(const sockaddr* sndr, std::unique_ptr<char[]> buf, std::size_t len, bool part) noexcept;
+    explicit udp_data_event(socket_address sndr, std::unique_ptr<char[]> buf, std::size_t len, bool part) noexcept;
 
     std::unique_ptr<char[]> data; /*!< A bunch of data read on the stream. */
     std::size_t length;           /*!< The amount of data read on the stream. */
-    const sockaddr* sender;        /*!< A valid instance of sockaddr. */
+    socket_address sender;        /*!< A valid instance of socket_address. */
     bool partial;                 /*!< True if the message was truncated, false otherwise. */
 };
 
@@ -63,6 +63,14 @@ private:
 
 } // namespace details
 
+} // namespace uvw
+
+
+#include "udp_ex.h"
+
+
+namespace uvw {
+
 /**
  * @brief The UDP handle.
  *
@@ -79,7 +87,7 @@ private:
  * [documentation](http://docs.libuv.org/en/v1.x/udp.html#c.uv_udp_init_ex)
  * for further details.
  */
-class udp_handle final: public handle<udp_handle, uv_udp_t, send_event, udp_data_event> {
+class udp_handle final: public handle<udp_handle, uv_udp_t, send_event, udp_data_event, udp_data_raw_event> {
     static void recv_callback(uv_udp_t *hndl, ssize_t nread, const uv_buf_t *buf, const sockaddr *addr, unsigned flags);
 
 public:
@@ -544,6 +552,10 @@ public:
      */
     size_t send_queue_count() const noexcept;
 
+
+#   include "udp_handle_ex.h"
+
+
 private:
     enum {
         DEFAULT,
@@ -557,6 +569,9 @@ private:
 
 #ifndef UVW_AS_LIB
 #    include "udp.ipp"
+
+#    include "udp_ex.ipp"
+
 #endif
 
 #endif // UVW_UDP_INCLUDE_H

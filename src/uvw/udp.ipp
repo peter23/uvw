@@ -3,10 +3,10 @@
 
 namespace uvw {
 
-UVW_INLINE udp_data_event::udp_data_event(const sockaddr* sndr, std::unique_ptr<char[]> buf, std::size_t len, bool part) noexcept
+UVW_INLINE udp_data_event::udp_data_event(socket_address sndr, std::unique_ptr<char[]> buf, std::size_t len, bool part) noexcept
     : data{std::move(buf)},
       length{len},
-      sender{sndr},
+      sender{std::move(sndr)},
       partial{part} {}
 
 UVW_INLINE void details::send_req::udp_send_callback(uv_udp_send_t *req, int status) {
@@ -33,12 +33,12 @@ UVW_INLINE void udp_handle::recv_callback(uv_udp_t *hndl, ssize_t nread, const u
 
     if(nread > 0) {
         // data available (can be truncated)
-        udp.publish(udp_data_event{addr, std::move(data), static_cast<std::size_t>(nread), !(0 == (flags & UV_UDP_PARTIAL))});
+        udp.publish(udp_data_event{details::sock_addr(*addr), std::move(data), static_cast<std::size_t>(nread), !(0 == (flags & UV_UDP_PARTIAL))});
     } else if(nread == 0 && addr == nullptr) {
         // no more data to be read, doing nothing is fine
     } else if(nread == 0 && addr != nullptr) {
         // empty udp packet
-        udp.publish(udp_data_event{addr, std::move(data), static_cast<std::size_t>(nread), false});
+        udp.publish(udp_data_event{details::sock_addr(*addr), std::move(data), static_cast<std::size_t>(nread), false});
     } else {
         // transmission error
         udp.publish(error_event(nread));
