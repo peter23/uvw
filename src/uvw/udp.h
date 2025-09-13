@@ -20,11 +20,11 @@ struct send_event {};
 
 /*! @brief UDP data event. */
 struct udp_data_event {
-    explicit udp_data_event(socket_address sndr, std::unique_ptr<char[]> buf, std::size_t len, bool part) noexcept;
+    explicit udp_data_event(const sockaddr* sndr, std::unique_ptr<char[]> buf, std::size_t len, bool part) noexcept;
 
     std::unique_ptr<char[]> data; /*!< A bunch of data read on the stream. */
     std::size_t length;           /*!< The amount of data read on the stream. */
-    socket_address sender;        /*!< A valid instance of socket_address. */
+    const sockaddr* sender;        /*!< A valid instance of sockaddr. */
     bool partial;                 /*!< True if the message was truncated, false otherwise. */
 };
 
